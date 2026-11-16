@@ -1,0 +1,14 @@
+# Multi-step ACR Task. Run it with: az acr run --registry <acr> --file acr-task.yaml .
+version: v1.1.0
+steps:
+  # 1. Build the image, tagged with the unique run id
+  - id: build
+    build: -t $Registry/ai200/day1-app:$ID --build-arg GIT_SHA=$ID -f Dockerfile .
+  # 2. Smoke test: start the image and make sure the code imports
+  - id: smoke-test
+    cmd: $Registry/ai200/day1-app:$ID python -c "import app; print('import ok')"
+  # 3. Push only after the test passed
+  - id: push
+    push:
+      - $Registry/ai200/day1-app:$ID
+      - $Registry/ai200/day1-app:latest
